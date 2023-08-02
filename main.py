@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui
 import os
 
-# test fo github
+# test fo github q
 def load_images_from_directory(directory):
     image_names = []
     image_list = []
