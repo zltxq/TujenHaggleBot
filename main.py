@@ -59,7 +59,7 @@ def start_bot():
                 for pt in zip(*loc[::-1]):
                     # Draw rectangle around the matched region
                     cv2.rectangle(frame, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 2)
-
+                    break
                     # Perform actions on the detected template (if needed)
                     # ... (code to interact with the detected template)
 
