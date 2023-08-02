@@ -13,9 +13,8 @@ def load_images_from_directory(directory):
     for entry in os.scandir(directory):
         if entry.name.endswith(".jpg"):
             image_names.append(entry.name)
-    for name in image_names:
-        img = cv2.imread(os.path.join(directory, name), cv2.IMREAD_GRAYSCALE)
-        image_list.append(img)
+            img = cv2.imread(os.path.join(directory, entry.name), cv2.IMREAD_GRAYSCALE)
+            image_list.append((entry.name, img))  # Store both name and image as a tuple
     return image_list
 
 # # Set up screen capture
@@ -47,7 +46,7 @@ def start_bot():
         frame = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        for template in currency_images:
+        for name, template in currency_images:
             h, w = template.shape
 
             # Perform template matching
@@ -59,6 +58,8 @@ def start_bot():
                 for pt in zip(*loc[::-1]):
                     # Draw rectangle around the matched region
                     cv2.rectangle(frame, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 2)
+                    # print((res[pt[1], pt[0]] + 1) * 50) # confidence% of matched item
+                    # print(f"Matched template: {name}") # name of matched template
                     break
                     # Perform actions on the detected template (if needed)
                     # ... (code to interact with the detected template)
