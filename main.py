@@ -8,21 +8,40 @@ import sys
 
 # Function to load images from directory
 def load_images_from_directory(directory):
-    image_names = []
     image_list = []
     for entry in os.scandir(directory):
         if entry.name.endswith(".jpg"):
-            image_names.append(entry.name)
             img = cv2.imread(os.path.join(directory, entry.name), cv2.IMREAD_GRAYSCALE)
-            image_list.append((entry.name, img))  # Store both name and image as a tuple
+            image_list.append((img))  # Store both name and image as a tuple
     return image_list
 
-# # Set up screen capture
-# screen_height = 650
-# capture_region = (300, 255, screen_width, screen_height)
-screen_width = 680
-screen_height = 650
-capture_region = (300, 345, screen_width, screen_height)
+
+left_start = 300
+top_start = 345
+
+# Capture the screen within the specified region
+def capture_screen(screen_width = 680, screen_height = 650):
+    screen_region = (300, 345, screen_width, screen_height)
+    screenshot = pyautogui.screenshot(region=screen_region)
+    frame = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    return gray_frame
+
+# Function to perform template matching and return matched locations
+# def find_matched_regions(captured_image, template):
+#     gray_frame = captured_image
+#     result = cv2.matchTemplate(gray_frame, template, cv2.TM_CCOEFF_NORMED)
+#     locations = np.where(result >= 0.8)
+#     locations = list(zip(*locations[::-1]))
+#     return locations
+def find_matched_regions(frame, template):
+    result = cv2.matchTemplate(frame, template, cv2.TM_CCOEFF_NORMED)
+    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+    # print(max_val)
+    if max_val > .8:
+        return max_loc
+    else:
+        return None
 
 # Load custom template images
 buttons_path = "images/templates/buttons"
@@ -39,33 +58,33 @@ def start_bot():
     global running
     print("Bot started.")
     running = True
+    currency_index = 0
 
     while running:
-        # Capture the screen within the specified region
-        screenshot = pyautogui.screenshot(region=capture_region)
-        frame = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        for name, template in currency_images:
-            h, w = template.shape
+        frame = capture_screen()
 
-            # Perform template matching
-            res = cv2.matchTemplate(gray_frame, template, cv2.TM_CCOEFF_NORMED)
-            threshold = 0.8  # Adjust the threshold based on your requirements
-            loc = np.where(res >= threshold)
+        first_check = find_matched_regions(frame, currency_images[currency_index])
+        if first_check is not None:
+            # pyautogui.moveTo(first_check[0] + left_start + 2, first_check[1] + top_start + 2)
 
-            if len(loc[0]) > 0:
-                for pt in zip(*loc[::-1]):
-                    # Draw rectangle around the matched region
-                    cv2.rectangle(frame, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 2)
-                    # print((res[pt[1], pt[0]] + 1) * 50) # confidence% of matched item
-                    # print(f"Matched template: {name}") # name of matched template
-                    break
-                    # Perform actions on the detected template (if needed)
-                    # ... (code to interact with the detected template)
+            # Draw a rectangle around the found item
+            h, w = currency_images[currency_index].shape
+            top_left = first_check
+            bottom_right = (top_left[0] + w, top_left[1] + h)
+            cv2.rectangle(frame, top_left, bottom_right, (255, 255, 255), 2)
+        else:
+            currency_index += 1
 
-                # Break the loop after drawing rectangle for one template
+        if currency_index >= len(currency_images):
+            reroll_btn = find_matched_regions(frame, buttons_images[1])
+            if reroll_btn is not None:
+                pyautogui.moveTo(reroll_btn[0] + left_start + 12, reroll_btn[1] + top_start + 12, .2)
+                pyautogui.click()
+            else:
+                print('No reroll')
                 break
+            currency_index = 0
 
         # Display the frame with detected template
         cv2.imshow("Screen Stream", frame)
@@ -109,3 +128,6 @@ def listen_for_hotkey():
 # Start the hotkey listener in a separate thread
 keyboard_thread = threading.Thread(target=listen_for_hotkey)
 keyboard_thread.start()
+
+
+
