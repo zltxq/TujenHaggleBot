@@ -79,7 +79,6 @@ def drag(x_offset, y_offset, duration_range=(0.13, 0.2)):
     # Perform the left-click and drag with randomized speed, acceleration, and duration
     pyautogui.drag(x_offset, y_offset, duration, button='left', tween=pyautogui.easeInOutQuad)
 
-
 # Load custom template images
 buttons_path = "images/templates/buttons"
 currency_path = "images/templates/currency"
@@ -97,6 +96,7 @@ left_start = 300
 top_start = 345
 
 # Function to start the bot
+print('Bot is ready, press "S" to begin, "Q" to pause and "X" to exit')
 def start_bot():
     global running
     print("Bot started.")
