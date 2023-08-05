@@ -5,6 +5,8 @@ import os
 from pynput import keyboard
 import threading
 import sys
+import random
+import time
 
 # Function to load images from directory
 def load_images_from_directory(directory):
@@ -35,6 +37,49 @@ def template_match(template):
     else:
         return None
 
+# Function to move the cursor to a given location
+def move_cursor(x, y, duration_range=(0.13, 0.2)):
+    # Generate random values for cursor position adjustments
+    x_adjustment = random.uniform(1, 15)
+    y_adjustment = random.uniform(1, 15)
+
+    # Generate random duration within the specified range
+    duration = random.uniform(*duration_range)
+
+    # Apply the random adjustments to the cursor position
+    x += left_start + x_adjustment
+    y += top_start + y_adjustment
+
+    # Move the cursor with randomized speed and acceleration
+    pyautogui.moveTo(x, y, duration, pyautogui.easeInOutQuad)
+
+# Function to perform a left-click at the current cursor location with randomized interval
+def left_click(click_interval_range=(0.02, 0.06)):
+    # Generate random interval for the click
+    click_interval = random.uniform(*click_interval_range)
+    time.sleep(click_interval)
+
+    # Perform the left-click + post click interval
+    pyautogui.click()
+    time.sleep(click_interval)
+
+# Function to perform a left-click and drag at the current cursor location with randomized values
+def drag(x_offset, y_offset, duration_range=(0.13, 0.2)):
+    # Generate random adjustments for x_offset and y_offset
+    x_adjustment = random.uniform(-10, 5)
+    y_adjustment = random.uniform(-18, 24)
+
+    # Generate random duration within the specified range
+    duration = random.uniform(*duration_range)
+
+    # Apply the random adjustments to the offsets
+    x_offset += x_adjustment
+    y_offset += y_adjustment
+
+    # Perform the left-click and drag with randomized speed, acceleration, and duration
+    pyautogui.drag(x_offset, y_offset, duration, button='left', tween=pyautogui.easeInOutQuad)
+
+
 # Load custom template images
 buttons_path = "images/templates/buttons"
 currency_path = "images/templates/currency"
@@ -63,36 +108,35 @@ def start_bot():
         # currency check
         currency_location = template_match(currency_images[currency_index])
         if currency_location is not None:
-            # # Draw a rectangle around the found item
-            # h, w = currency_images[currency_index].shape
-            # top_left = currency_location
-            # bottom_right = (top_left[0] + w, top_left[1] + h)
-            # cv2.rectangle(frame, top_left, bottom_right, (255, 255, 255), 2)
-            pyautogui.moveTo(currency_location[0] + left_start + 0.1, currency_location[1] + top_start + 0.1, .25)
-            pyautogui.click()
-            # slider + confirm first check
+            move_cursor(currency_location[0], currency_location[1])
+            left_click()
+
             slider_index = buttons_names.index('slider.jpg')
             slider_location = template_match(buttons_images[slider_index])
-            pyautogui.moveTo(slider_location[0] + left_start + 0.1, slider_location[1] + top_start + 0.1, .25)
-            pyautogui.drag(-115, 0, .2, button='left')
+            if slider_location is not None:
+                move_cursor(slider_location[0], slider_location[1])
+                drag(-120, 0)
+
             confirm_index = buttons_names.index('confirm.jpg')
             confirm_location = template_match(buttons_images[confirm_index])
-            pyautogui.moveTo(confirm_location[0] + left_start + 0.1, confirm_location[1] + top_start + 0.1, .25)
-            pyautogui.click()
-            # slider + confirm second check
+            move_cursor(confirm_location[0], confirm_location[1])
+            left_click()
+
+            # Check for slider and confirm again
             slider_location = template_match(buttons_images[slider_index])
             if slider_location is not None:
-                pyautogui.moveTo(slider_location[0] + left_start + 0.1, slider_location[1] + top_start + 0.1, .25)
-                pyautogui.drag(-55, 0, .2, button='left')
+                move_cursor(slider_location[0], slider_location[1])
+                drag(-55, 0)
                 confirm_location = template_match(buttons_images[confirm_index])
-                pyautogui.moveTo(confirm_location[0] + left_start + 0.1, confirm_location[1] + top_start + 0.1, .25)
-                pyautogui.click()
-                # slider + confirm last check
+                move_cursor(confirm_location[0], confirm_location[1])
+                left_click()
+
+                # Check for slider and confirm one more time
                 slider_location = template_match(buttons_images[slider_index])
                 if slider_location is not None:
                     confirm_location = template_match(buttons_images[confirm_index])
-                    pyautogui.moveTo(confirm_location[0] + left_start + 0.1, confirm_location[1] + top_start + 0.1, .25)
-                    pyautogui.click()
+                    move_cursor(confirm_location[0], confirm_location[1])
+                    left_click()
         else:
             currency_index += 1
 
@@ -100,8 +144,8 @@ def start_bot():
             reroll_index = buttons_names.index('reroll.jpg')
             reroll_location = template_match(buttons_images[reroll_index])
             if reroll_location is not None:
-                pyautogui.moveTo(reroll_location[0] + left_start + 0.1, reroll_location[1] + top_start + 0.1, .25)
-                pyautogui.click()
+                move_cursor(reroll_location[0], reroll_location[1])
+                left_click()
             else:
                 print('No reroll')
                 break
