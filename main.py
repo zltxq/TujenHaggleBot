@@ -61,27 +61,47 @@ def start_bot():
 
     while running:
         frame = capture_screen()
-
-        first_check = template_match(currency_images[currency_index])
-        if first_check is not None:
-            # pyautogui.moveTo(first_check[0] + left_start + 2, first_check[1] + top_start + 2)
-
-            # Draw a rectangle around the found item
-            h, w = currency_images[currency_index].shape
-            top_left = first_check
-            bottom_right = (top_left[0] + w, top_left[1] + h)
-            cv2.rectangle(frame, top_left, bottom_right, (255, 255, 255), 2)
-
-            print(currency_names[currency_index])
-
+        # currency check
+        currency_location = template_match(currency_images[currency_index])
+        if currency_location is not None:
+            # # Draw a rectangle around the found item
+            # h, w = currency_images[currency_index].shape
+            # top_left = currency_location
+            # bottom_right = (top_left[0] + w, top_left[1] + h)
+            # cv2.rectangle(frame, top_left, bottom_right, (255, 255, 255), 2)
+            pyautogui.moveTo(currency_location[0] + left_start + 0.1, currency_location[1] + top_start + 0.1, .25)
+            pyautogui.click()
+            # slider + confirm first check
+            slider_index = buttons_names.index('slider.jpg')
+            slider_location = template_match(buttons_images[slider_index])
+            pyautogui.moveTo(slider_location[0] + left_start + 0.1, slider_location[1] + top_start + 0.1, .25)
+            pyautogui.drag(-115, 0, .2, button='left')
+            confirm_index = buttons_names.index('confirm.jpg')
+            confirm_location = template_match(buttons_images[confirm_index])
+            pyautogui.moveTo(confirm_location[0] + left_start + 0.1, confirm_location[1] + top_start + 0.1, .25)
+            pyautogui.click()
+            # slider + confirm second check
+            slider_location = template_match(buttons_images[slider_index])
+            if slider_location is not None:
+                pyautogui.moveTo(slider_location[0] + left_start + 0.1, slider_location[1] + top_start + 0.1, .25)
+                pyautogui.drag(-55, 0, .2, button='left')
+                confirm_location = template_match(buttons_images[confirm_index])
+                pyautogui.moveTo(confirm_location[0] + left_start + 0.1, confirm_location[1] + top_start + 0.1, .25)
+                pyautogui.click()
+                # slider + confirm last check
+                slider_location = template_match(buttons_images[slider_index])
+                if slider_location is not None:
+                    confirm_location = template_match(buttons_images[confirm_index])
+                    pyautogui.moveTo(confirm_location[0] + left_start + 0.1, confirm_location[1] + top_start + 0.1, .25)
+                    pyautogui.click()
         else:
             currency_index += 1
 
         if currency_index >= len(currency_images):
-            index_btn = buttons_names.index('reroll.jpg')
-            reroll_btn = template_match(buttons_images[index_btn])
-            if reroll_btn is not None:
-                pyautogui.moveTo(reroll_btn[0] + left_start + 12, reroll_btn[1] + top_start + 12, .2)
+            reroll_index = buttons_names.index('reroll.jpg')
+            reroll_location = template_match(buttons_images[reroll_index])
+            if reroll_location is not None:
+                pyautogui.moveTo(reroll_location[0] + left_start + 0.1, reroll_location[1] + top_start + 0.1, .25)
                 pyautogui.click()
             else:
                 print('No reroll')
