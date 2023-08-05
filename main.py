@@ -25,6 +25,7 @@ def capture_screen(screen_width = 680, screen_height = 650):
     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     return gray_frame
 
+
 def template_match(template):
     screen_img = capture_screen()
     result = cv2.matchTemplate(screen_img, template, cv2.TM_CCOEFF_NORMED)
