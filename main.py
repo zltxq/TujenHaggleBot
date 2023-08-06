@@ -79,6 +79,47 @@ def drag(x_offset, y_offset, duration_range=(0.13, 0.2)):
     # Perform the left-click and drag with randomized speed, acceleration, and duration
     pyautogui.drag(x_offset, y_offset, duration, button='left', tween=pyautogui.easeInOutQuad)
 
+def inventory_perform_move():
+    global click_event  # Add the 'global' statement to access the global variable
+    # Define inventory properties
+    num_rows = 5
+    row_height = 53
+    row_height_center = row_height // 2
+    row_width = 598
+    indent_from_above = 586
+    left_indent = 1275
+    duration1 = random.uniform(1.8, 2.3)
+    duration2 = random.uniform(0.2, .4)
+
+    pyautogui.moveTo(left_indent + random.uniform(10, 20), indent_from_above + row_height_center + random.uniform(-5, 8), duration2, pyautogui.easeInOutQuad)
+
+    click_event.set()
+    # Hold the 'Ctrl' key down and click on all cells
+    pyautogui.keyDown('ctrl')
+    for row in range(num_rows):
+        pyautogui.moveTo(left_indent + row_width + random.uniform(-15, 15), indent_from_above + row_height_center + random.uniform(-5, 8), duration1, pyautogui.easeInOutQuad)
+        indent_from_above += 53
+        if row < num_rows - 1:
+            pyautogui.moveTo(left_indent + random.uniform(-15, 15), indent_from_above + row_height_center + random.uniform(-5, 8), duration2, pyautogui.easeInOutQuad)
+    # Release the 'Ctrl' key
+    pyautogui.keyUp('ctrl')
+
+def inventory_perform_click():
+    # Define the interval between clicks (0.1 seconds)
+    click_interval = random.uniform(0.0116, 0.0325)
+
+    while True:
+        # Wait until the click_event is set (inventory_perform_move() is done)
+        click_event.wait()
+        # Perform the click
+        pyautogui.click()
+        # Wait for the specified interval before the next click
+        time.sleep(click_interval)
+
+        # Check if the click_event is cleared (stop clicking if inventory_perform_move() is done)
+        if not click_event.is_set():
+            break
+
 # Load custom template images
 buttons_path = "images/templates/buttons"
 currency_path = "images/templates/currency"
@@ -92,16 +133,57 @@ buttons_names = load_images_from_directory(buttons_path)[1]
 running = False
 
 # margin left/top
-left_start = 300
-top_start = 345
+left_start = 290
+top_start = 250
+
+# Function to stash items from the inventory
+# def stash_items():
+#     # Stash cell dimensions and spacing
+#     cell_width = 52
+#     cell_height = 53
+#     indent_top = 586
+#     indent_left = 1275
+#
+#     # Number of rows and columns in the inventory
+#     num_rows = 5
+#     num_columns = 12
+#
+#     # Hold the 'Ctrl' key down and click on all cells
+#     pyautogui.keyDown('ctrl')
+#     for row in range(num_rows):
+#         for column in range(num_columns):
+#             # Calculate the coordinates of the center of the cell with a random offset
+#             x_center = indent_left + column * cell_width + cell_width // 2 + random.randint(-7, 5)
+#             y_center = indent_top + row * cell_height + cell_height // 2 + random.randint(-3, 5)
+#
+#             # Generate random duration within the range of 0.1 to 0.3 seconds
+#             duration = random.uniform(0.1, 0.15)
+#
+#             # Move the cursor to the center of the cell with random duration
+#             pyautogui.moveTo(x_center, y_center, duration, pyautogui.easeInOutQuad)
+#
+#             # Click on the cell without releasing the 'Ctrl' key
+#             pyautogui.click()
+#
+#             # Generate a random interval between 0.01 to 0.03 seconds
+#             # click_interval = random.uniform(0.003, 0.008)
+#             # time.sleep(click_interval)
+#
+#     # Release the 'Ctrl' key
+#     pyautogui.keyUp('ctrl')
+
+
 
 # Function to start the bot
+# Create a threading.Event object to control clicking
+click_event = threading.Event()
 print('Bot is ready, press "S" to begin, "Q" to pause and "X" to exit')
 def start_bot():
     global running
     print("Bot started.")
     running = True
     currency_index = 0
+    full_inventory_counter = 25
 
     while running:
         frame = capture_screen()
@@ -139,7 +221,9 @@ def start_bot():
                     left_click()
         else:
             currency_index += 1
+            full_inventory_counter += 1
 
+        # Reroll button
         if currency_index >= len(currency_images):
             reroll_index = buttons_names.index('reroll.jpg')
             reroll_location = template_match(buttons_images[reroll_index])
@@ -149,7 +233,42 @@ def start_bot():
             else:
                 print('No reroll')
                 break
+
             currency_index = 0
+
+        # Put items to stash
+        if full_inventory_counter >= 25:
+            stash_button_index = buttons_names.index('stash.jpg')
+            stash_button_location = template_match(buttons_images[stash_button_index])
+            if stash_button_location is not None:
+                move_cursor(stash_button_location[0], stash_button_location[1])
+                left_click()
+                time.sleep(3)
+
+                # Create threads for the cursor movement and click actions
+                move_thread = threading.Thread(target=inventory_perform_move)
+                click_thread = threading.Thread(target=inventory_perform_click)
+
+                # Start both threads
+                move_thread.start()
+                click_thread.start()
+
+                # Wait for the move_thread to finish (inventory_perform_move() to complete)
+                move_thread.join()
+
+                # Clear the click_event to stop clicking
+                click_event.clear()
+
+                # Wait for the click_thread to finish (inventory_perform_click() to stop clicking)
+                click_thread.join()
+
+                full_inventory_counter = 0
+
+                break
+
+            else:
+                print('Stash button not found.')
+                break
 
         # Display the frame with detected template
         cv2.imshow("Screen Stream", frame)
@@ -170,7 +289,7 @@ def stop_bot():
 
 # Function to handle keyboard events
 def on_press(key):
-    if key == keyboard.KeyCode(char='s'):
+    if key == keyboard.KeyCode(char='t'):
         if not running:
             threading.Thread(target=start_bot).start()
         else:
