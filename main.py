@@ -40,8 +40,8 @@ def template_match(template):
 # Function to move the cursor to a given location
 def move_cursor(x, y, duration_range=(0.13, 0.2)):
     # Generate random values for cursor position adjustments
-    x_adjustment = random.uniform(1, 15)
-    y_adjustment = random.uniform(1, 15)
+    x_adjustment = random.uniform(3, 15)
+    y_adjustment = random.uniform(3, 15)
 
     # Generate random duration within the specified range
     duration = random.uniform(*duration_range)
@@ -64,12 +64,13 @@ def left_click(click_interval_range=(0.02, 0.06)):
     time.sleep(click_interval)
 
 # Function to perform a left-click and drag at the current cursor location with randomized values
-def drag(x_offset, y_offset, duration_range=(0.13, 0.2)):
+def drag(x_offset, y_offset):
     # Generate random adjustments for x_offset and y_offset
-    x_adjustment = random.uniform(-10, 5)
-    y_adjustment = random.uniform(-18, 24)
+    x_adjustment = random.uniform(-5, 7)
+    y_adjustment = random.uniform(-34, 25)
 
     # Generate random duration within the specified range
+    duration_range = (0.2, 0.23)
     duration = random.uniform(*duration_range)
 
     # Apply the random adjustments to the offsets
@@ -136,139 +137,191 @@ running = False
 left_start = 290
 top_start = 250
 
-# Function to stash items from the inventory
-# def stash_items():
-#     # Stash cell dimensions and spacing
-#     cell_width = 52
-#     cell_height = 53
-#     indent_top = 586
-#     indent_left = 1275
-#
-#     # Number of rows and columns in the inventory
-#     num_rows = 5
-#     num_columns = 12
-#
-#     # Hold the 'Ctrl' key down and click on all cells
-#     pyautogui.keyDown('ctrl')
-#     for row in range(num_rows):
-#         for column in range(num_columns):
-#             # Calculate the coordinates of the center of the cell with a random offset
-#             x_center = indent_left + column * cell_width + cell_width // 2 + random.randint(-7, 5)
-#             y_center = indent_top + row * cell_height + cell_height // 2 + random.randint(-3, 5)
-#
-#             # Generate random duration within the range of 0.1 to 0.3 seconds
-#             duration = random.uniform(0.1, 0.15)
-#
-#             # Move the cursor to the center of the cell with random duration
-#             pyautogui.moveTo(x_center, y_center, duration, pyautogui.easeInOutQuad)
-#
-#             # Click on the cell without releasing the 'Ctrl' key
-#             pyautogui.click()
-#
-#             # Generate a random interval between 0.01 to 0.03 seconds
-#             # click_interval = random.uniform(0.003, 0.008)
-#             # time.sleep(click_interval)
-#
-#     # Release the 'Ctrl' key
-#     pyautogui.keyUp('ctrl')
+slider_index = buttons_names.index('slider.jpg')
+confirm_index = buttons_names.index('confirm.jpg')
+reroll_index = buttons_names.index('reroll.jpg')
+stash_button_index = buttons_names.index('stash.jpg')
+tujen_button_index = buttons_names.index('tujen.jpg')
 
+# Function to stash items from the inventory
+def stash_items():
+    # Stash cell dimensions and spacing
+    cell_width = 52
+    cell_height = 53
+    indent_top = 586
+    indent_left = 1275
+
+    # Number of rows and columns in the inventory
+    num_rows = 5
+    num_columns = 12
+
+    # Hold the 'Ctrl' key down and click on all cells
+    pyautogui.keyDown('ctrl')
+    for row in range(num_rows):
+        for column in range(num_columns):
+            # Calculate the coordinates of the center of the cell with a random offset
+            x_center = indent_left + column * cell_width + cell_width // 2 + random.randint(-7, 5)
+            y_center = indent_top + row * cell_height + cell_height // 2 + random.randint(-3, 5)
+
+            # Generate random duration within the range of 0.1 to 0.3 seconds
+            duration = random.uniform(0.1, 0.15)
+
+            # Move the cursor to the center of the cell with random duration
+            pyautogui.moveTo(x_center, y_center, duration, pyautogui.easeInOutQuad)
+
+            # Click on the cell without releasing the 'Ctrl' key
+            pyautogui.click()
+
+            # Generate a random interval between 0.01 to 0.03 seconds
+            click_interval = random.uniform(0.003, 0.008)
+            time.sleep(click_interval)
+
+    # Release the 'Ctrl' key
+    pyautogui.keyUp('ctrl')
+
+
+# # Create a threading.Event object to control clicking
+# click_event = threading.Event()
 
 
 # Function to start the bot
-# Create a threading.Event object to control clicking
-click_event = threading.Event()
-print('Bot is ready, press "S" to begin, "Q" to pause and "X" to exit')
+print('Bot is ready, press "T" to begin, "Q" to pause and "X" to exit')
 def start_bot():
     global running
     print("Bot started.")
     running = True
     currency_index = 0
-    full_inventory_counter = 25
+    full_inventory_counter = 0
 
     while running:
         frame = capture_screen()
+
         # currency check
         currency_location = template_match(currency_images[currency_index])
         if currency_location is not None:
+            # cv2.rectangle(frame, (currency_location[0], currency_location[1]),
+            #               (currency_location[0] + 25, currency_location[1] + 25), (255, 255, 255), 2)
             move_cursor(currency_location[0], currency_location[1])
             left_click()
 
-            slider_index = buttons_names.index('slider.jpg')
             slider_location = template_match(buttons_images[slider_index])
             if slider_location is not None:
                 move_cursor(slider_location[0], slider_location[1])
                 drag(-120, 0)
 
-            confirm_index = buttons_names.index('confirm.jpg')
-            confirm_location = template_match(buttons_images[confirm_index])
-            move_cursor(confirm_location[0], confirm_location[1])
-            left_click()
-
-            # Check for slider and confirm again
-            slider_location = template_match(buttons_images[slider_index])
-            if slider_location is not None:
-                move_cursor(slider_location[0], slider_location[1])
-                drag(-55, 0)
                 confirm_location = template_match(buttons_images[confirm_index])
                 move_cursor(confirm_location[0], confirm_location[1])
                 left_click()
 
-                # Check for slider and confirm one more time
+                # Check for slider and confirm again
                 slider_location = template_match(buttons_images[slider_index])
                 if slider_location is not None:
+                    move_cursor(slider_location[0], slider_location[1])
+                    drag(-55, 0)
+
                     confirm_location = template_match(buttons_images[confirm_index])
                     move_cursor(confirm_location[0], confirm_location[1])
                     left_click()
+
+                    # Check for slider and confirm one more time
+                    slider_location = template_match(buttons_images[slider_index])
+                    if slider_location is not None:
+                        confirm_location = template_match(buttons_images[confirm_index])
+                        move_cursor(confirm_location[0], confirm_location[1])
+                        left_click()
         else:
             currency_index += 1
-            full_inventory_counter += 1
 
         # Reroll button
         if currency_index >= len(currency_images):
-            reroll_index = buttons_names.index('reroll.jpg')
             reroll_location = template_match(buttons_images[reroll_index])
             if reroll_location is not None:
                 move_cursor(reroll_location[0], reroll_location[1])
+                time.sleep(random.uniform(0.3, 0.6))
                 left_click()
             else:
                 print('No reroll')
-                break
+                # break
 
             currency_index = 0
+            full_inventory_counter += 1
 
         # Put items to stash
-        if full_inventory_counter >= 25:
-            stash_button_index = buttons_names.index('stash.jpg')
+        if full_inventory_counter >= 35:
+            time.sleep(random.uniform(0.3, 0.5))
+            # Press the 'Esc' key
+            pyautogui.press('esc')
+
+
             stash_button_location = template_match(buttons_images[stash_button_index])
             if stash_button_location is not None:
-                move_cursor(stash_button_location[0], stash_button_location[1])
+                stash_x = stash_button_location[0] + left_start + random.uniform(3, 55)
+                stash_y = stash_button_location[1] + top_start + random.uniform(2, 15)
+                # stash_duration_range = (0.13, 0.2)
+                stash_duration = random.uniform(0.2, 0.3)
+
+                pyautogui.moveTo(stash_x, stash_y, stash_duration, pyautogui.easeInOutQuad)
                 left_click()
-                time.sleep(3)
+                time.sleep(1)
 
-                # Create threads for the cursor movement and click actions
-                move_thread = threading.Thread(target=inventory_perform_move)
-                click_thread = threading.Thread(target=inventory_perform_click)
+                cell_width = 52
+                cell_height = 53
+                indent_top = 586
+                indent_left = 1275
 
-                # Start both threads
-                move_thread.start()
-                click_thread.start()
+                # Number of rows and columns in the inventory
+                num_rows = 5
+                num_columns = 12
 
-                # Wait for the move_thread to finish (inventory_perform_move() to complete)
-                move_thread.join()
+                # Hold the 'Ctrl' key down and click on all cells
+                pyautogui.keyDown('ctrl')
+                for row in range(num_rows):
+                    if running:
+                        for column in range(num_columns):
+                            # Calculate the coordinates of the center of the cell with a random offset
+                            x_center = indent_left + column * cell_width + cell_width // 2 + random.randint(-7, 5)
+                            y_center = indent_top + row * cell_height + cell_height // 2 + random.randint(-3, 5)
 
-                # Clear the click_event to stop clicking
-                click_event.clear()
+                            # Generate random duration within the range of 0.1 to 0.3 seconds
+                            duration = random.uniform(0.1, 0.15)
 
-                # Wait for the click_thread to finish (inventory_perform_click() to stop clicking)
-                click_thread.join()
+                            # Move the cursor to the center of the cell with random duration
+                            pyautogui.moveTo(x_center, y_center, duration, pyautogui.easeInOutQuad)
 
+                            # Click on the cell without releasing the 'Ctrl' key
+                            pyautogui.click()
+
+                            # Generate a random interval between 0.01 to 0.03 seconds
+                            click_interval = random.uniform(0.003, 0.008)
+                            time.sleep(click_interval)
+
+                # Release the 'Ctrl' key
+                pyautogui.keyUp('ctrl')
                 full_inventory_counter = 0
+                # Press the 'Esc' key
+                pyautogui.press('esc')
 
-                break
+                # Tujen find
+
+                tujen_button_location = template_match(buttons_images[tujen_button_index])
+                if tujen_button_location is not None:
+                    tujen_x = tujen_button_location[0] + left_start + random.uniform(3, 180)
+                    tujen_y = tujen_button_location[1] + top_start + random.uniform(2, 15)
+                    tujen_duration = random.uniform(0.13, 0.2)
+
+                    pyautogui.moveTo(tujen_x, tujen_y, tujen_duration, pyautogui.easeInOutQuad)
+                    pyautogui.keyDown('ctrl')
+                    left_click()
+                    pyautogui.keyUp('ctrl')
+
+                else:
+                    print('Tujen not found')
+                    break
 
             else:
-                print('Stash button not found.')
+                print('Stash button not found')
                 break
+
 
         # Display the frame with detected template
         cv2.imshow("Screen Stream", frame)
